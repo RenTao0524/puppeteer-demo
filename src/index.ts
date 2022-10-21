@@ -1,5 +1,5 @@
-const puppeteer = require("puppeteer");
-const { pageUrl, userInfo, assigneeUserName } = require('./constants')
+import puppeteer from 'puppeteer'
+import { pageUrl, userInfo, assigneeUserName } from './constants'
 
 const summary_description = 'summary demo'
 
@@ -8,22 +8,22 @@ puppeteer
     slowMo: 200,
     headless: false,
   })
-  .then(async (browser) => {
+  .then(async (browser: puppeteer.Browser) => {
     await login(browser)
     await sleep(30000)
     const page = await gotoJiraPage(browser)
     await createTask(page)
   });
 
-async function createTask(page) {
+async function createTask(page: puppeteer.Page) {
   await page.waitForSelector('#create_link')
   const createBtn = await page.$('#create_link')
-  await createBtn.click()
+  createBtn && await createBtn.click()
 
   await page.waitForSelector('#issuetype-field')
   // issue type
   const issueTypeSelect = await page.$('#issuetype-field')
-  await issueTypeSelect.click()
+  issueTypeSelect && await issueTypeSelect.click()
 
   // await page.waitForSelector('.aui-list-item-li-task')
   // await page.evaluate(() => {
@@ -31,37 +31,39 @@ async function createTask(page) {
   // })
 
   const summaryInput = await page.$('#summary')
-  await summaryInput.type(summary_description)
+  summaryInput && await summaryInput.type(summary_description)
 
   const assigneeFieldInput = await page.$('#assignee-field')
-  await assigneeFieldInput.type(assigneeUserName)
+  assigneeFieldInput && await assigneeFieldInput.type(assigneeUserName)
   await page.waitForSelector('#assignee-suggestions')
   await page.evaluate(() => {
-    document.querySelector('#suggestions').childNodes[0].click()
+    const element = document.querySelector('#suggestions')?.childNodes[0]
+    if (element instanceof HTMLElement) {
+      element.click();
+    }
   })
 }
 
-async function gotoJiraPage(browser) {
+async function gotoJiraPage(browser: puppeteer.Browser) {
   const page2 = await browser.newPage();
   await page2.goto(pageUrl);
   return page2
 }
 
-function sleep(time) {
+function sleep(time: number) {
   return new Promise((resolve) => {
     setTimeout(() => {
-      resolve()
+      resolve(true)
     }, time);
   })
 }
 
-async function login(browser) {
+async function login(browser: puppeteer.Browser) {
   const page = await browser.newPage();
   await page.goto(pageUrl);
 
   const userInfoInput = await page.$('.b_login_input')
-  await userInfoInput.type(userInfo.u)
+  userInfoInput && await userInfoInput.type(userInfo.u)
   const passewordInput = await page.$('#password')
-  await passewordInput.type(userInfo.password)
-
+  passewordInput && await passewordInput.type(userInfo.password)
 }
